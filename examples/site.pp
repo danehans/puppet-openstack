@@ -3,14 +3,8 @@
 
 # Load apt prerequisites.  This is only valid on Ubuntu systems
 class { 'apt': }
-
-apt::ppa { 'ppa:cisco-openstack-mirror/cisco-proposed': }
 apt::ppa { 'ppa:cisco-openstack-mirror/cisco': }
-
-Apt::Ppa['ppa:cisco-openstack-mirror/cisco-proposed'] -> Package<| title != 'python-software-properties' |>
 Apt::Ppa['ppa:cisco-openstack-mirror/cisco'] -> Package<| title != 'python-software-properties' |>
-
-apt::pin {'cisco-proposed': priority => '990', originator => 'LP-PPA-cisco-openstack-mirror-cisco-proposed',}
 apt::pin {'cisco': priority => '990', originator => 'LP-PPA-cisco-openstack-mirror-cisco',}
 
 ####### shared variables ##################
