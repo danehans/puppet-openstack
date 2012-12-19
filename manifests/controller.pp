@@ -114,6 +114,7 @@ class openstack::controller(
   $quantum_auth_strategy       = 'keystone',
   $quantum_admin_auth_url      = "http://${internal_address}:35357/v2.0",
   $quantum_ip_overlap          = false,
+  $libvirt_vif_driver	       = 'nova.virt.libvirt.vif.LibvirtHybridOVSBridgeDriver',
 ) {
 
   $glance_api_servers = "${internal_address}:9292"
