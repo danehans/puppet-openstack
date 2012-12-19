@@ -164,7 +164,7 @@ class openstack::compute(
 
   # Base Quantum Class to manage quantum.conf for Compute Nodes
   class { 'quantum':
-    #enabled                => false,
+    enabled                => false,
     rabbit_host            => $quantum_rabbit_host,
     rabbit_port            => '5672',
     rabbit_user            => $quantum_rabbit_user,
