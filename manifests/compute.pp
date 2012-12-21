@@ -175,7 +175,6 @@ class openstack::compute(
     sql_connection      => $ovs_sql_connection,
     tenant_network_type => 'gre',
     enable_tunneling    => true,
-    use_bridge_uplink   => $quantum_uplink_enable,
   }
 
   # set up Quantum Client
