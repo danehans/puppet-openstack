@@ -175,16 +175,23 @@ class openstack::controller (
     $vncproxy_host_real = $public_address
   }
 
-  # Ensure things are run in order
-  Class['openstack::db::mysql'] -> Class['openstack::keystone']
-  Class['openstack::db::mysql'] -> Class['openstack::glance']
-  Class['openstack::db::mysql'] -> Class['openstack::nova::controller']
-
   ####### DATABASE SETUP ######
   # set up mysql server
   if ($db_type == 'mysql') {
     if ($enabled) {
+      # Ensure things are run in order
+      Class['openstack::db::mysql'] -> Class['openstack::keystone']
+      Class['openstack::db::mysql'] -> Class['openstack::glance']
+      Class['openstack::db::mysql'] -> Class['openstack::nova::controller']
+      Class['openstack::db::mysql'] -> Class['openstack::quantum']
       Class['glance::db::mysql'] -> Class['glance::registry']
+      if ($quantum) and ($enable_ovs_agent) {
+        Class['quantum::db::mysql'] -> Class['quantum::plugins::ovs']
+        Class['quantum::db::mysql'] -> Class['quantum::agents::ovs']
+      }
+      if ($cinder) {
+        Class['openstack::db::mysql'] -> Class['openstack::cinder::controller']
+      }
     }
     class { 'openstack::db::mysql':
       mysql_root_password    => $mysql_root_password,
