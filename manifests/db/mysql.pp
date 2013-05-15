@@ -11,6 +11,7 @@
 # [glance_db_password] Password for glance database. Required.
 # [nova_db_password] Password for nova database. Required.
 # [mysql_bind_address] Address that mysql will bind to. Optional .Defaults to '0.0.0.0'.
+# [db_host] Host where db resides. Optional. Defaults to 127.0.0.1.
 # [mysql_account_security] If a secure mysql db should be setup. Optional .Defaults to true.
 # [keystone_db_user] DB user for keystone. Optional. Defaults to 'keystone'.
 # [keystone_db_dbname] DB name for keystone. Optional. Defaults to 'keystone'.
@@ -41,6 +42,7 @@ class openstack::db::mysql (
     $quantum_db_password,
     # MySQL
     $mysql_bind_address     = '0.0.0.0',
+    $db_host                = '127.0.0.1',
     $mysql_account_security = true,
     # Keystone
     $keystone_db_user       = 'keystone',
@@ -82,6 +84,7 @@ class openstack::db::mysql (
     class { 'keystone::db::mysql':
       user          => $keystone_db_user,
       password      => $keystone_db_password,
+      host          => $db_host,
       dbname        => $keystone_db_dbname,
       allowed_hosts => $allowed_hosts,
     }
@@ -90,6 +93,7 @@ class openstack::db::mysql (
     class { 'glance::db::mysql':
       user          => $glance_db_user,
       password      => $glance_db_password,
+      host          => $db_host,
       dbname        => $glance_db_dbname,
       allowed_hosts => $allowed_hosts,
     }
@@ -98,6 +102,7 @@ class openstack::db::mysql (
     class { 'nova::db::mysql':
       user          => $nova_db_user,
       password      => $nova_db_password,
+      host          => $db_host,
       dbname        => $nova_db_dbname,
       allowed_hosts => $allowed_hosts,
     }
@@ -107,6 +112,7 @@ class openstack::db::mysql (
       class { 'cinder::db::mysql':
         user          => $cinder_db_user,
         password      => $cinder_db_password,
+        host          => $db_host,
         dbname        => $cinder_db_dbname,
         allowed_hosts => $allowed_hosts,
       }
@@ -117,6 +123,7 @@ class openstack::db::mysql (
       class { 'quantum::db::mysql':
         user          => $quantum_db_user,
         password      => $quantum_db_password,
+        host          => $db_host,
         dbname        => $quantum_db_dbname,
         allowed_hosts => $allowed_hosts,
       }
