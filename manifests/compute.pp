@@ -47,7 +47,9 @@ class openstack::compute (
   $enable_l3_agent               = false,
   $enable_dhcp_agent             = false,
   $quantum_l3_auth_url           = "http://127.0.0.1:35357/v2.0",
+  # maybe these should not allow defaults?
   $keystone_host                 = '127.0.0.1',
+  $quantum_host                  = '127.0.0.1',
   $bridge_interface              = undef,
   # Nova
   $nova_admin_tenant_name        = 'services',
@@ -226,7 +228,7 @@ class openstack::compute (
     class { 'nova::network::quantum':
       quantum_admin_password    => $quantum_user_password,
       quantum_auth_strategy     => 'keystone',
-      quantum_url               => "http://${keystone_host}:9696",
+      quantum_url               => "http://${quantum_host}:9696",
       quantum_admin_tenant_name => 'services',
       quantum_admin_auth_url    => "http://${keystone_host}:35357/v2.0",
     }
