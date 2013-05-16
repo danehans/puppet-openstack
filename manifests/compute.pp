@@ -191,6 +191,18 @@ class openstack::compute (
       fail('keystone host must be configured when quantum is installed')
     }
 
+    # should this always be here when quantum is configured?
+    Package['libvirt'] ->
+    file_line { 'quemu_hack':
+      line => 'cgroup_device_acl = [
+     "/dev/null", "/dev/full", "/dev/zero",
+     "/dev/random", "/dev/urandom",
+     "/dev/ptmx", "/dev/kvm", "/dev/kqemu",
+     "/dev/rtc", "/dev/hpet", "/dev/net/tun",]',
+      path   => '/etc/libvirt/qemu.conf',
+      ensure => present,
+    } ~> Service['libvirt']
+
     class { 'openstack::quantum':
       # Database
       db_host           => $db_host,
