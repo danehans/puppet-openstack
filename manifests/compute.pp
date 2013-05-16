@@ -18,12 +18,11 @@
 class openstack::compute (
   # Required Network
   $internal_address,
-  # Required Nova
-  $nova_user_password,
-  # Required Rabbit
+  # Required Passwords
   $rabbit_password,
+  $nova_user_password,
+  $nova_db_password,
   # DB
-  $sql_connection,
   $db_type                       = 'mysql',
   $db_host                       = '127.0.0.1',
   # Nova Database
@@ -80,6 +79,13 @@ class openstack::compute (
   $enabled                       = true
 ) {
 
+  # Configure the db string
+  case $db_type {
+    'mysql': {
+      $nova_sql_connection = "mysql://${nova_db_user}:${nova_db_password}@${db_host}/${nova_db_name}"
+    }
+  }
+
   if $vncserver_listen {
     $vncserver_listen_real = $vncserver_listen
   } else {
@@ -100,14 +106,14 @@ class openstack::compute (
   }
 
   class { 'nova':
-    sql_connection      => $sql_connection,
+    sql_connection      => $nova_sql_connection,
     rabbit_userid       => $rabbit_user,
     rabbit_password     => $rabbit_password,
+    rabbit_host         => $rabbit_host,
+    rabbit_virtual_host => $rabbit_virtual_host,
     image_service       => 'nova.image.glance.GlanceImageService',
     glance_api_servers  => $glance_api_servers,
     verbose             => $verbose,
-    rabbit_host         => $rabbit_host,
-    rabbit_virtual_host => $rabbit_virtual_host,
   }
 
   # Install / configure nova-compute
