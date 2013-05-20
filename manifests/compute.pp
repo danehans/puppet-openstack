@@ -42,11 +42,12 @@ class openstack::compute (
   $quantum_db_password           = false,
   $quantum_db_name               = 'quantum',
   $quantum_db_user               = 'quantum',
+  $ovs_local_ip                  = $internal_address,
   $enable_quantum_server         = false,
   $enable_ovs_agent              = true,
   $enable_l3_agent               = false,
   $enable_dhcp_agent             = false,
-  $quantum_l3_auth_url           = "http://127.0.0.1:35357/v2.0",
+  $quantum_auth_url              = "http://127.0.0.1:35357/v2.0",
   # maybe these should not allow defaults?
   $keystone_host                 = '127.0.0.1',
   $quantum_host                  = '127.0.0.1',
@@ -191,23 +192,26 @@ class openstack::compute (
       fail('keystone host must be configured when quantum is installed')
     }
 
-    # should this always be here when quantum is configured?
-    Package['libvirt'] ->
-    file_line { 'quemu_hack':
-      line => 'cgroup_device_acl = [
-     "/dev/null", "/dev/full", "/dev/zero",
-     "/dev/random", "/dev/urandom",
-     "/dev/ptmx", "/dev/kvm", "/dev/kqemu",
-     "/dev/rtc", "/dev/hpet", "/dev/net/tun",]',
-      path   => '/etc/libvirt/qemu.conf',
-      ensure => present,
-    } ~> Service['libvirt']
+    if $libvirt_type == 'qemu' {
+      # should this always be here when quantum is configured?
+      Package['libvirt'] ->
+      file_line { 'quemu_hack':
+        line        => 'cgroup_device_acl = [
+       "/dev/null", "/dev/full", "/dev/zero",
+       "/dev/random", "/dev/urandom",
+       "/dev/ptmx", "/dev/kvm", "/dev/kqemu",
+       "/dev/rtc", "/dev/hpet", "/dev/net/tun",]',
+        path        => '/etc/libvirt/qemu.conf',
+        ensure      => present,
+        refreshonly => true
+      } ~> Service['libvirt']
+    }
 
     class { 'openstack::quantum':
       # Database
       db_host           => $db_host,
       # Networking
-      ovs_local_ip      => $internal_address,
+      ovs_local_ip      => $ovs_local_ip,
       # Rabbit
       rabbit_host       => $rabbit_host,
       rabbit_user       => $rabbit_user,
@@ -222,7 +226,7 @@ class openstack::compute (
       # Quantum L3 Agent
       enable_l3_agent   => $enable_l3_agent,
       enable_dhcp_agent => $enable_dhcp_agent,
-      l3_auth_url       => $quantum_l3_auth_url,
+      auth_url          => $quantum_auth_url,
       user_password     => $quantum_user_password,
       # Keystone
       keystone_host     => $keystone_host,

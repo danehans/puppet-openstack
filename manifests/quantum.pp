@@ -43,11 +43,15 @@ class openstack::quantum (
   # OVS settings
   $ovs_local_ip           = undef,
   $ovs_enable_tunneling   = true,
+  $firewall_driver        = undef,
   # networking and Interface Information
   $bridge_interface       = undef,
   $external_bridge_name   = 'br-ex',
   # Quantum Authentication Information
-  $l3_auth_url            = 'http://localhost:35357/v2.0',
+  $auth_url               = 'http://localhost:35357/v2.0',
+  # Metadata Configuration
+  $shared_secret          = false,
+  $metadata_ip            = '127.0.0.1', 
   # Rabbit Information
   $rabbit_user            = 'quantum',
   $rabbit_host            = '127.0.0.1',
@@ -107,6 +111,7 @@ class openstack::quantum (
       bridge_mappings  => ["default:${external_bridge_name}"],
       enable_tunneling => $ovs_enable_tunneling,
       local_ip         => $ovs_local_ip,
+      firewall_driver  => $firewall_driver
     }
   }
 
@@ -120,5 +125,12 @@ class openstack::quantum (
       use_namespaces => True
     }
   }
-
+  if $enable_metadata_agent {
+    class { 'quantum::agents::metadata':
+      auth_password => $user_password, 
+      shared_secret => $shared_secret,
+      auth_url      => $auth_url, 
+      metadata_ip   => $metadata_ip            
+    }
+  }
 }

@@ -45,6 +45,7 @@ class openstack::nova::controller (
   # quantum
   $quantum                   = false,
   $quantum_user_password     = 'quantum_pass',
+  $quantum_metadata_proxy_shared_secret = undef,
   # Nova
   $nova_admin_tenant_name    = 'services',
   $nova_admin_user           = 'nova',
@@ -112,12 +113,13 @@ class openstack::nova::controller (
 
   # Configure nova-api
   class { 'nova::api':
-    enabled           => $enabled,
-    admin_tenant_name => $nova_admin_tenant_name,
-    admin_user        => $nova_admin_user,
-    admin_password    => $nova_user_password,
-    enabled_apis      => $enabled_apis,
-    auth_host         => $keystone_host,
+    enabled                              => $enabled,
+    admin_tenant_name                    => $nova_admin_tenant_name,
+    admin_user                           => $nova_admin_user,
+    admin_password                       => $nova_user_password,
+    enabled_apis                         => $enabled_apis,
+    auth_host                            => $keystone_host,
+    quantum_metadata_proxy_shared_secret => $quantum_metadata_proxy_shared_secret
   }
 
 

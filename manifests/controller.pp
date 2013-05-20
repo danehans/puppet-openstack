@@ -155,9 +155,11 @@ class openstack::controller (
   $enable_dhcp_agent       = true,
   $enable_l3_agent         = true,
   $enable_metadata_agent   = true,
+  $metadata_shared_secret  = undef,
+  $firewall_driver         = 'quantum.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
   $quantum_db_user         = 'quantum',
   $quantum_db_name         = 'quantum',
-  $quantum_l3_auth_url     = "http://127.0.0.1:35357/v2.0",
+  $quantum_auth_url        = "http://127.0.0.1:35357/v2.0",
   $enable_quantum_server   = true,
   $ovs_local_ip            = '127.0.0.1',
   $enabled                 = true
@@ -299,6 +301,7 @@ class openstack::controller (
     # Quantum
     quantum                 => $quantum,
     quantum_user_password   => $quantum_user_password,
+    quantum_metadata_proxy_shared_secret => $metadata_shared_secret,
     # Nova
     nova_admin_tenant_name  => $nova_admin_tenant_name,
     nova_admin_user         => $nova_admin_user,
@@ -344,6 +347,7 @@ class openstack::controller (
       ovs_local_ip          => $ovs_local_ip,
       bridge_interface      => $bridge_interface,
       enable_ovs_agent      => $enable_ovs_agent,
+      firewall_driver       => $firewall_driver,
       # Database
       db_name               => $quantum_db_name,
       db_user               => $quantum_db_user,
@@ -352,8 +356,9 @@ class openstack::controller (
       enable_dhcp_agent     => $enable_dhcp_agent,
       enable_l3_agent       => $enable_l3_agent,
       enable_metadata_agent => $enable_metadata_agent,
-      l3_auth_url           => $quantum_l3_auth_url,
+      auth_url              => $quantum_auth_url,
       user_password         => $quantum_user_password,
+      shared_secret         => $metadata_shared_secret,
       # Keystone
       keystone_host         => $keystone_host,
       # General
@@ -371,10 +376,11 @@ class openstack::controller (
     }
 
     class { 'openstack::cinder::controller':
-      bind_host		       => $bind_host,
+      bind_host	         => $bind_host,
       keystone_auth_host => $keystone_host,
-      keystone_user	     => $cinder_keystone_user,
+      keystone_user      => $cinder_keystone_user,
       keystone_password  => $cinder_user_password,
+      rabbit_userid      => $rabbit_user,      
       rabbit_password    => $rabbit_password,
       rabbit_host        => $rabbit_host,
       db_password        => $cinder_db_password,
