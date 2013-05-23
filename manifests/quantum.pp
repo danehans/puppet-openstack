@@ -9,8 +9,11 @@
 # [db_password]
 #   (required) Password used to connect to quantum database.
 #
-# [bridge_interface]
-#   (optional) Physical interface that ovs bridges its public traffic through.
+# [bridge_uplinks]
+#   (optional) OVS external bridge name and physcial bridge interface tuple.
+#
+# [bridge_mappings]
+#   (optional) Physcial network name and OVS external bridge name tuple. Only needed for flat and VLAN networking.
 #
 # [external_bridge_name]
 #    (optional) Name of external bridge that bridges to public interface.
@@ -19,11 +22,13 @@
 # === Examples
 #
 # class { 'openstack::quantum':
-#   enable_l3_dhcp_agents => true,
+#   db_password           => 'quantum_db_pass',
+#   user_password         => 'keystone_user_pass',
+#   rabbit_password       => 'quantum_rabbit_pass',
+#   bridge_uplinks        => '[br-ex:eth0]',
+#   bridge_mappings       => '[default:br-ex],
 #   enable_ovs_agent      => true,
-#   db_host               => '127.0.0.1',
-#   rabbit_password       => 'changeme',
-#   bridge_interface      => 'eth0',
+#   ovs_local_ip          => '10.10.10.10',
 # }
 #
 
@@ -45,8 +50,8 @@ class openstack::quantum (
   $ovs_enable_tunneling   = true,
   $firewall_driver        = undef,
   # networking and Interface Information
-  $bridge_interface       = undef,
-  $external_bridge_name   = 'br-ex',
+  $bridge_uplinks         = [],
+  $bridge_mappings        = [],
   # Quantum Authentication Information
   $auth_url               = 'http://localhost:35357/v2.0',
   # Metadata Configuration
@@ -73,11 +78,6 @@ class openstack::quantum (
   # set up mysql server
   if ($db_type == 'mysql') {
       $sql_connection = "mysql://${db_user}:${db_password}@${db_host}/${db_name}?charset=utf8"
-#    if ($enabled) {
-#      # Ensure things are run in order
-#      Class['quantum::db::mysql'] -> Class['quantum::plugins::ovs']
-#      Class['quantum::db::mysql'] -> Class['quantum::agents::ovs']
-#    }
   }
 
   class { '::quantum':
@@ -103,12 +103,15 @@ class openstack::quantum (
   }
 
   if $enable_ovs_agent {
-    if ! $bridge_interface {
-      fail('Bridge interface must be set when using ovs agent')
+    if ! $bridge_uplinks {
+      fail('bridge_uplinks paramater must be set when using ovs agent')
+    }
+    if ! $bridge_mappings {
+      fail('bridge_mappings paramater must be set when using ovs agent')
     }
     class { 'quantum::agents::ovs':
-      bridge_uplinks   => ["${external_bridge_name}:${bridge_interface}"],
-      bridge_mappings  => ["default:${external_bridge_name}"],
+      bridge_uplinks   => $bridge_uplinks,
+      bridge_mappings  => $bridge_mappings,
       enable_tunneling => $ovs_enable_tunneling,
       local_ip         => $ovs_local_ip,
       firewall_driver  => $firewall_driver

@@ -51,12 +51,11 @@ class openstack::compute (
   # maybe these should not allow defaults?
   $keystone_host                 = '127.0.0.1',
   $quantum_host                  = '127.0.0.1',
-  $bridge_interface              = undef,
   # Nova
   $nova_admin_tenant_name        = 'services',
   $nova_admin_user               = 'nova',
-  $libvirt_vif_driver            = 'nova.virt.libvirt.vif.LibvirtOpenVswitchDriver',
-  $purge_nova_config             = true,
+  $libvirt_vif_driver            = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver',
+  $purge_nova_config             = false,
   # Rabbit
   $rabbit_host                   = '127.0.0.1',
   $rabbit_user                   = 'rabbit_user',
@@ -192,21 +191,6 @@ class openstack::compute (
       fail('keystone host must be configured when quantum is installed')
     }
 
-    if $libvirt_type == 'qemu' {
-      # should this always be here when quantum is configured?
-      Package['libvirt'] ->
-      file_line { 'quemu_hack':
-        line        => 'cgroup_device_acl = [
-       "/dev/null", "/dev/full", "/dev/zero",
-       "/dev/random", "/dev/urandom",
-       "/dev/ptmx", "/dev/kvm", "/dev/kqemu",
-       "/dev/rtc", "/dev/hpet", "/dev/net/tun",]',
-        path        => '/etc/libvirt/qemu.conf',
-        ensure      => present,
-        refreshonly => true
-      } ~> Service['libvirt']
-    }
-
     class { 'openstack::quantum':
       # Database
       db_host           => $db_host,
@@ -217,7 +201,6 @@ class openstack::compute (
       rabbit_user       => $rabbit_user,
       rabbit_password   => $rabbit_password,
       # Quantum OVS
-      bridge_interface  => $bridge_interface,
       enable_ovs_agent  => $enable_ovs_agent,
       # Database
       db_name           => $quantum_db_name,
@@ -258,7 +241,7 @@ class openstack::compute (
   if ($manage_volumes) {
 
     if ! $cinder_db_password {
-      fail('cinder db password must be set when cinder is being configured by openstack::compute')
+      fail('$cinder_db_password must be set when cinder is being configured by openstack::compute')
     }
 
     $cinder_sql_connection = "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_name}"

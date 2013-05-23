@@ -112,7 +112,7 @@ class openstack::controller (
   $nova_admin_user         = 'nova',
   $nova_db_user            = 'nova',
   $nova_db_dbname          = 'nova',
-  $purge_nova_config       = true,
+  $purge_nova_config       = false,
   $enabled_apis            = 'ec2,osapi_compute,metadata',
   # Nova Networking
   $public_interface        = false,
@@ -146,11 +146,10 @@ class openstack::controller (
   $cinder                  = true,
   $cinder_db_user          = 'cinder',
   $cinder_db_dbname        = 'cinder',
-  # quantum
-  $quantum                 = false,
   # Quantum
   $quantum                 = true,
   $bridge_interface        = undef,
+  $external_bridge_name    = 'br-ex',
   $enable_ovs_agent        = undef,
   $enable_dhcp_agent       = true,
   $enable_l3_agent         = true,
@@ -345,7 +344,8 @@ class openstack::controller (
       rabbit_virtual_host   => $rabbit_virtual_host,
       # Quantum OVS
       ovs_local_ip          => $ovs_local_ip,
-      bridge_interface      => $bridge_interface,
+      bridge_uplinks        => ["${external_bridge_name}:${bridge_interface}"],
+      bridge_mappings       => ["default:${external_bridge_name}"],
       enable_ovs_agent      => $enable_ovs_agent,
       firewall_driver       => $firewall_driver,
       # Database
